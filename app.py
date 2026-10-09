@@ -268,15 +268,14 @@ def style_transfer(
     """Generate a stylized image using Adaptive Instance Normalization."""
 
     content_transform = transforms.Compose([
-        transforms.Resize(512),
-        transforms.ToTensor()
+    transforms.Resize(128),
+    transforms.ToTensor()
     ])
 
     style_transform = transforms.Compose([
-        transforms.Resize(512),
-        transforms.ToTensor()
-    ])
-
+    transforms.Resize(128),
+    transforms.ToTensor()
+])
     content_tensor = (
         content_transform(content_image)
         .unsqueeze(0)
