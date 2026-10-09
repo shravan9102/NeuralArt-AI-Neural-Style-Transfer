@@ -1,0 +1,1341 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b18">
+    <title>🎨 NeuralArt – AI-Powered Neural Style Transfer 🚀</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #080b18;
+            --card: rgba(18, 23, 45, .88);
+            --border: rgba(145, 125, 255, .22);
+            --purple: #9b5cff;
+            --pink: #ff5fbd;
+            --text: #f4f3ff;
+            --muted: #a6abc7;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text);
+            font-family: "Inter", sans-serif;
+            background:
+                radial-gradient(ellipse at 15% 10%, rgba(100, 52, 190, .2), transparent 40%),
+                radial-gradient(ellipse at 90% 40%, rgba(255, 65, 180, .1), transparent 35%),
+                linear-gradient(135deg, #070916, #0b1024 55%, #10091e);
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        #neuralCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .55;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: .1;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 3px,
+                rgba(255,255,255,.05) 4px
+            );
+        }
+
+        .orb {
+            position: fixed;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            filter: blur(85px);
+            opacity: .18;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatOrb 12s ease-in-out infinite alternate;
+        }
+
+        .orb-one { background: #7b35ff; top: 15%; left: -100px; }
+        .orb-two {
+            background: #ff3fa4;
+            bottom: 8%;
+            right: -100px;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatOrb {
+            from { transform: translate(0, 0); }
+            to { transform: translate(55px, -40px); }
+        }
+
+        .page-content { position: relative; z-index: 2; }
+
+        .navbar {
+            padding: 20px 0;
+            background: rgba(7, 9, 22, .78);
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            font-family: "Orbitron", sans-serif;
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+        }
+
+        .brand-icon { color: var(--pink); margin-right: 9px; }
+
+        .gradient-text {
+            color: transparent;
+            background: linear-gradient(90deg, #a979ff, #ff6cc7);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .nav-link {
+            color: #c7c8df !important;
+            margin-left: 18px;
+            font-size: .92rem;
+            transition: color .2s ease;
+        }
+
+        .nav-link:hover { color: #ff80d1 !important; }
+
+        .hero { padding: 82px 0 44px; text-align: center; }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid rgba(166, 119, 255, .38);
+            background: rgba(137, 86, 255, .1);
+            color: #d9c9ff;
+            border-radius: 30px;
+            padding: 9px 16px;
+            font-size: .77rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .eyebrow-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #8dffce;
+            box-shadow: 0 0 12px #8dffce;
+        }
+
+        .hero h1 {
+            margin: 26px auto 18px;
+            font-family: "Orbitron", sans-serif;
+            font-size: clamp(2.3rem, 6vw, 4.8rem);
+            line-height: 1.12;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .hero p {
+            max-width: 680px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 1.06rem;
+            line-height: 1.8;
+        }
+
+        .hero-image {
+            display: block;
+            width: 100%;
+            max-width: 800px;
+            height: 155px;
+            margin: 35px auto 0;
+            object-fit: cover;
+            object-position: center 48%;
+            border-radius: 18px;
+            border: 1px solid rgba(168, 127, 255, .3);
+            opacity: .82;
+            box-shadow: 0 0 50px rgba(117, 65, 255, .12);
+        }
+
+        .section-container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 25px 20px 75px;
+        }
+
+        .section-heading { margin-bottom: 28px; text-align: center; }
+
+        .section-heading h2 {
+            font-family: "Orbitron", sans-serif;
+            font-size: clamp(1.6rem, 4vw, 2.3rem);
+            font-weight: 700;
+        }
+
+        .section-heading p { color: var(--muted); margin-top: 10px; }
+
+        .glass-card {
+            height: 100%;
+            padding: 25px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 18px 50px rgba(0,0,0,.2);
+            backdrop-filter: blur(15px);
+        }
+
+        .card-title-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card-title-custom i { color: #c09aff; font-size: 1.15rem; }
+
+        .card-description {
+            color: var(--muted);
+            font-size: .86rem;
+            line-height: 1.65;
+            margin-bottom: 18px;
+        }
+
+        .preview-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            height: 255px;
+            overflow: hidden;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(120,70,210,.1), rgba(255,80,180,.06)), #0b0f20;
+            border: 1px dashed rgba(173,145,255,.38);
+        }
+
+        .preview-image img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: rgba(0,0,0,.12);
+        }
+
+        .preview-placeholder { text-align: center; padding: 20px; color: #8f95b5; }
+
+        .preview-placeholder i {
+            display: block;
+            font-size: 2.4rem;
+            color: #8f66df;
+            margin-bottom: 14px;
+        }
+
+        .preview-placeholder span { display: block; font-size: .9rem; }
+
+        .file-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: .85rem;
+            color: #d7d5ee;
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-control:focus {
+            color: #f5f2ff;
+            background-color: #0d1125;
+            border: 1px solid rgba(155,130,255,.3);
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+        .form-control::file-selector-button {
+            color: #fff;
+            background: #38245e;
+            border: 0;
+            border-radius: 7px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .form-control::file-selector-button:hover { background: #59368e; }
+
+        .alpha-section {
+            margin-top: 26px;
+            padding: 20px;
+            border: 1px solid rgba(155,130,255,.2);
+            background: rgba(10,14,32,.65);
+            border-radius: 15px;
+        }
+
+        .alpha-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .alpha-header label { font-weight: 700; font-size: .95rem; }
+
+        .range-value {
+            min-width: 48px;
+            padding: 6px 9px;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(135deg, #8c50f5, #e84cb6);
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: .86rem;
+        }
+
+        .form-range { width: 100%; accent-color: #b36cff; cursor: pointer; }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #888eae;
+            font-size: .76rem;
+            margin-top: 5px;
+        }
+
+        .btn-glow {
+            width: 100%;
+            padding: 15px 20px;
+            margin-top: 22px;
+            color: #fff !important;
+            background: linear-gradient(100deg, #7546ed, #b34ae9 55%, #f34da9);
+            border: 0;
+            border-radius: 12px;
+            font-size: .95rem;
+            font-weight: 800;
+            letter-spacing: .3px;
+            box-shadow: 0 8px 28px rgba(151,67,239,.28);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(190,67,239,.4);
+        }
+
+        .btn-glow:disabled { opacity: .75; cursor: wait; transform: none; }
+
+        .hint {
+            margin-top: 13px;
+            color: #9298b8;
+            font-size: .78rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .alert-custom {
+            color: #ffd6df;
+            background: rgba(160,35,75,.18);
+            border: 1px solid rgba(255,93,143,.32);
+            border-radius: 12px;
+        }
+
+        .result-card {
+            margin-top: 28px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(29,22,61,.88), rgba(18,20,42,.92));
+            border: 1px solid rgba(199,126,255,.38);
+            border-radius: 20px;
+            box-shadow: 0 0 45px rgba(130,69,255,.12);
+            scroll-margin-top: 25px;
+        }
+
+        .result-heading { text-align: center; margin-bottom: 22px; }
+
+        .result-heading h3 {
+            font-family: "Orbitron", sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .result-image {
+            display: block;
+            max-width: 100%;
+            max-height: 650px;
+            margin: 0 auto;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.1);
+            background: #080b18;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 22px;
+            padding: 12px 22px;
+            border: 1px solid rgba(182,141,255,.4);
+            background: rgba(140,78,245,.16);
+            color: #e5d6ff;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: background .2s ease;
+        }
+
+        .download-btn:hover { background: rgba(140,78,245,.3); color: #fff; }
+
+        .feature-card {
+            height: 100%;
+            padding: 24px;
+            border: 1px solid rgba(150,130,255,.18);
+            background: rgba(17,21,42,.68);
+            border-radius: 16px;
+        }
+
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 18px;
+            border-radius: 13px;
+            color: #e5ceff;
+            background: linear-gradient(135deg, rgba(137,82,255,.3), rgba(255,79,185,.18));
+            font-size: 1.25rem;
+        }
+
+        .feature-card h3 { font-size: 1rem; font-weight: 700; }
+
+        .feature-card p {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .example-card {
+            overflow: hidden;
+            height: 100%;
+            background: rgba(18,22,43,.88);
+            border: 1px solid rgba(150,130,255,.18);
+            border-radius: 15px;
+            transition: transform .2s ease, border-color .2s ease;
+        }
+
+        .example-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(194,129,255,.5);
+        }
+
+        .example-card img {
+            display: block;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #101327;
+        }
+
+        .example-card-body { padding: 16px; }
+        .example-card-body h3 { font-size: .95rem; font-weight: 700; margin-bottom: 7px; }
+        .example-card-body p { color: var(--muted); font-size: .79rem; line-height: 1.6; margin: 0; }
+
+        .faq .accordion-item {
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: rgba(18,22,43,.85);
+            border: 1px solid rgba(150,130,255,.2);
+            border-radius: 12px;
+        }
+
+        .faq .accordion-button {
+            padding: 18px 20px;
+            color: #f2edff;
+            background: rgba(18,22,43,.85);
+            box-shadow: none;
+            font-weight: 600;
+        }
+
+        .faq .accordion-button:not(.collapsed) {
+            color: #d9baff;
+            background: rgba(99,57,166,.16);
+        }
+
+        .faq .accordion-button::after { filter: invert(1) grayscale(1); }
+
+        .faq .accordion-body { color: var(--muted); line-height: 1.8; font-size: .9rem; }
+
+        footer {
+            position: relative;
+            z-index: 2;
+            padding: 28px 20px;
+            text-align: center;
+            color: #8f95b2;
+            border-top: 1px solid rgba(255,255,255,.07);
+            background: rgba(6,8,19,.7);
+            font-size: .83rem;
+        }
+
+        .footer-brand {
+            color: #ded1ff;
+            font-family: "Orbitron", sans-serif;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .loader-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+            background: rgba(5,7,18,.94);
+            backdrop-filter: blur(12px);
+        }
+
+        .loader-overlay.active { display: flex; }
+
+        .loader-spinner {
+            width: 65px;
+            height: 65px;
+            border: 4px solid rgba(161,112,255,.18);
+            border-top-color: #c38aff;
+            border-right-color: #ff69bd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-title {
+            margin-top: 24px;
+            font-family: "Orbitron", sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .loader-description {
+            margin-top: 10px;
+            text-align: center;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        @media (max-width: 767px) {
+            .hero { padding: 55px 0 30px; }
+            .hero h1 { letter-spacing: -1px; }
+            .hero-image { height: 115px; }
+            .glass-card { padding: 18px; }
+            .preview-image { height: 225px; }
+            .nav-link { margin-left: 0; padding: 8px 0; }
+            .result-card { padding: 17px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="neuralCanvas" aria-hidden="true"></canvas>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="orb orb-one" aria-hidden="true"></div>
+    <div class="orb orb-two" aria-hidden="true"></div>
+
+    <div class="page-content">
+        <!-- NAVIGATION -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand brand" href="{{ url_for('index') }}">
+                    <i class="fa-solid fa-brain brand-icon"></i>
+                    Neural<span class="gradient-text">Art</span>
+                </a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
+                        <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#transfer">Create Art</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#examples">Examples</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- HERO -->
+        <header class="hero" id="home">
+            <div class="container">
+                <div class="eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    AI-POWERED NEURAL ART
+                </div>
+
+                <h1>
+                    Transform Images Into
+                    <span class="gradient-text">Art</span>
+                </h1>
+
+                <p>
+                    Blend the content of one image with the artistic style
+                    of another using Adaptive Instance Normalization.
+                    Create a unique visual in just a few clicks.
+                </p>
+
+                <img
+                    class="hero-image"
+                    src="https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1600&q=85"
+                    alt="Colorful abstract painting"
+                    loading="lazy">
+            </div>
+        </header>
+
+        <main>
+            <!-- STYLE TRANSFER FORM -->
+            <section class="section-container" id="transfer">
+                <div class="section-heading">
+                    <h2>Enter the <span class="gradient-text">Creative Lab</span></h2>
+                    <p>Upload your images, adjust the style strength, and generate your artwork.</p>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-custom mb-4" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form id="uploadForm"
+                      method="POST"
+                      action="{{ url_for('index') }}"
+                      enctype="multipart/form-data">
+
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <!-- CONTENT IMAGE -->
+                        <div class="col-lg-6">
+                            <div class="glass-card">
+                                <div class="card-title-custom">
+                                    <i class="fa-regular fa-image"></i>
+                                    <span>01. Content Image</span>
+                                </div>
+
+                                <p class="card-description">
+                                    The image whose main objects, shapes, and composition
+                                    you want to preserve.
+                                </p>
+
+                                <div class="preview-image mb-3" id="contentPreview">
+                                    {% if content_image %}
+                                        <img
+                                            src="{{ url_for('send_image', filename=content_image) }}"
+                                            alt="Content image preview">
+                                    {% else %}
+                                        <div class="preview-placeholder">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            <span>Choose your content image</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <label class="file-label" for="contentFile">
+                                    Select content image
+                                </label>
+
+                                {{ form.content(
+                                    id="contentFile",
+                                    class="form-control",
+                                    accept="image/png,image/jpeg",
+                                    required=true
+                                ) }}
+
+                                <p class="hint">
+                                    <i class="fa-solid fa-circle-info me-1"></i>
+                                    Supported formats: JPG, JPEG, PNG. Maximum size: 16 MB.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- STYLE IMAGE -->
+                        <div class="col-lg-6">
+                            <div class="glass-card">
+                                <div class="card-title-custom">
+                                    <i class="fa-solid fa-palette"></i>
+                                    <span>02. Style Image</span>
+                                </div>
+
+                                <p class="card-description">
+                                    Choose an artwork, painting, or image whose colors
+                                    and textures you want to apply.
+                                </p>
+
+                                <div class="preview-image mb-3" id="stylePreview">
+                                    {% if style_image %}
+                                        <img
+                                            src="{{ url_for('send_image', filename=style_image) }}"
+                                            alt="Style image preview">
+                                    {% else %}
+                                        <div class="preview-placeholder">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            <span>Choose your style image</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <label class="file-label" for="styleFile">
+                                    Select style image
+                                </label>
+
+                                {{ form.style(
+                                    id="styleFile",
+                                    class="form-control",
+                                    accept="image/png,image/jpeg",
+                                    required=true
+                                ) }}
+
+                                <p class="hint">
+                                    <i class="fa-solid fa-circle-info me-1"></i>
+                                    Try paintings, abstract art, or colorful patterns.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ALPHA SLIDER -->
+                    <div class="glass-card mt-4">
+                        <div class="card-title-custom">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>03. Style Strength</span>
+                        </div>
+
+                        <p class="card-description">
+                            Control how strongly the style image influences your result.
+                        </p>
+
+                        <div class="alpha-section">
+                            <div class="alpha-header">
+                                <label for="alphaRange">Style Intensity (Alpha)</label>
+                                <output class="range-value" id="rangeValue" for="alphaRange">
+                                    {{ form.alpha.data if form.alpha.data is not none else 1.0 }}
+                                </output>
+                            </div>
+
+                            {{ form.alpha(
+                                id="alphaRange",
+                                class="form-range",
+                                type="range",
+                                min="0",
+                                max="1",
+                                step="0.1"
+                            ) }}
+
+                            <div class="range-labels">
+                                <span>0.0 · Original content</span>
+                                <span>1.0 · Full style</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-glow" id="submitButton">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
+                            <span id="submitButtonText">Generate Neural Artwork</span>
+                        </button>
+
+                        <p class="hint">
+                            <i class="fa-solid fa-shield-halved me-1"></i>
+                            Upload your two images and let the AdaIN model do the rest.
+                        </p>
+                    </div>
+                </form>
+
+                <!-- GENERATED RESULT -->
+                {% if result_image %}
+                <section class="result-card" id="resultSection">
+                    <div class="result-heading">
+                        <div class="eyebrow mb-3">
+                            <span class="eyebrow-dot"></span>
+                            GENERATION COMPLETE
+                        </div>
+
+                        <h3>Your <span class="gradient-text">Neural Masterpiece</span></h3>
+                        <p class="card-description mt-2 mb-0">Your styled image is ready.</p>
+                    </div>
+
+                    <img
+                        class="result-image"
+                        src="{{ url_for('send_image', filename=result_image) }}"
+                        alt="Generated stylized artwork">
+
+                    <div class="text-center">
+                        <a
+                            class="download-btn"
+                            href="{{ url_for('send_image', filename=result_image) }}"
+                            download="neural-artwork.png">
+                            <i class="fa-solid fa-download"></i>
+                            Download Artwork
+                        </a>
+                    </div>
+                </section>
+                {% endif %}
+            </section>
+
+            <!-- FEATURES -->
+            <section class="section-container pt-2" id="features">
+                <div class="section-heading">
+                    <h2>Powered by <span class="gradient-text">AI</span></h2>
+                    <p>Creative tools that combine computer vision and artistic expression.</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-brain"></i></div>
+                            <h3>Adaptive Instance Normalization</h3>
+                            <p>Transfers feature statistics from a style image to the content representation.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                            <h3>Custom Style Control</h3>
+                            <p>Adjust alpha to choose between the original content and a stronger artistic transformation.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-image"></i></div>
+                            <h3>Instant Preview</h3>
+                            <p>Preview both input images before submitting your style transfer request.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXAMPLES -->
+            <section class="section-container pt-2" id="examples">
+                <div class="section-heading">
+                    <h2>Explore <span class="gradient-text">Examples</span></h2>
+                    <p>Take inspiration from these sample images and artworks.</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="example-card">
+                            <img
+                                src="{{ url_for('send_example', filename='brad_pitt (1).jpg') }}"
+                                alt="Example content portrait"
+                                loading="lazy">
+                            <div class="example-card-body">
+                                <h3>Portrait Content</h3>
+                                <p>A portrait example to explore structure and details.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="example-card">
+                            <img
+                                src="{{ url_for('send_example', filename='sketch (1).png') }}"
+                                alt="Example sketch"
+                                loading="lazy">
+                            <div class="example-card-body">
+                                <h3>Sketch Style</h3>
+                                <p>Experiment with sketch-like lines and textures.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="example-card">
+                            <img
+                                src="{{ url_for('send_example', filename='stylized_brad_pitt.jpg') }}"
+                                alt="Stylized portrait example"
+                                loading="lazy">
+                            <div class="example-card-body">
+                                <h3>Stylized Portrait</h3>
+                                <p>See how artistic textures can change a portrait.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="example-card">
+                            <img
+                                src="{{ url_for('send_example', filename='picasso_seated_nude_hr (1).jpg') }}"
+                                alt="Classic artwork example"
+                                loading="lazy">
+                            <div class="example-card-body">
+                                <h3>Classic Artwork</h3>
+                                <p>Use a painting to inspire a new color and texture palette.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="example-card">
+                            <img
+                                src="{{ url_for('send_example', filename='stylized_brad_pitt (1).jpg') }}"
+                                alt="Alternative stylized portrait"
+                                loading="lazy">
+                            <div class="example-card-body">
+                                <h3>Alternative Style</h3>
+                                <p>Compare different artistic transformations of a portrait.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="hint mt-4">
+                    Example images must exist in your project's <code>examples</code> folder.
+                </p>
+            </section>
+
+            <!-- FAQ -->
+            <section class="section-container pt-2" id="faq">
+                <div class="section-heading">
+                    <h2>Frequently Asked <span class="gradient-text">Questions</span></h2>
+                    <p>Some helpful information before generating your artwork.</p>
+                </div>
+
+                <div class="accordion faq" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadingOne">
+                            <button class="accordion-button" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#faqOne"
+                                    aria-expanded="true"
+                                    aria-controls="faqOne">
+                                What is neural style transfer?
+                            </button>
+                        </h3>
+                        <div id="faqOne" class="accordion-collapse collapse show"
+                             aria-labelledby="faqHeadingOne"
+                             data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Neural style transfer uses a neural network to combine
+                                the content of one image with the visual characteristics
+                                of another, such as colors, patterns, and textures.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadingTwo">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#faqTwo"
+                                    aria-expanded="false"
+                                    aria-controls="faqTwo">
+                                What does the alpha slider do?
+                            </button>
+                        </h3>
+                        <div id="faqTwo" class="accordion-collapse collapse"
+                             aria-labelledby="faqHeadingTwo"
+                             data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Alpha controls the balance between stylized features and
+                                original content features. A value of 0 keeps the content
+                                features, while 1 uses the full stylized representation.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadingThree">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#faqThree"
+                                    aria-expanded="false"
+                                    aria-controls="faqThree">
+                                Which image formats are supported?
+                            </button>
+                        </h3>
+                        <div id="faqThree" class="accordion-collapse collapse"
+                             aria-labelledby="faqHeadingThree"
+                             data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                The interface accepts PNG, JPG, and JPEG images.
+                                Each upload is limited to 16 MB in this interface.
+                                Your Flask backend should enforce the same limit.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadingFour">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#faqFour"
+                                    aria-expanded="false"
+                                    aria-controls="faqFour">
+                                Why is image generation taking time?
+                            </button>
+                        </h3>
+                        <div id="faqFour" class="accordion-collapse collapse"
+                             aria-labelledby="faqHeadingFour"
+                             data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Processing time depends on your computer, whether a
+                                compatible GPU is available, and the image dimensions.
+                                CPU processing may take longer than GPU processing.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-brand">
+                <i class="fa-solid fa-brain me-2"></i>
+                Neural<span class="gradient-text">Art</span>
+            </div>
+            <p class="mb-2">Transforming images through the power of AI.</p>
+            <p class="mb-0">
+                Made with <span style="color:#ff6db9;">&#10084;</span>
+                using Flask, PyTorch and AdaIN.
+            </p>
+            <p class="mt-3 mb-0">
+                &copy; <span id="currentYear"></span> NeuralArt AI
+            </p>
+        </footer>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loader-overlay" id="loader" aria-live="polite" aria-busy="true">
+        <div class="loader-spinner"></div>
+        <div class="loader-title">
+            Creating Your <span class="gradient-text">Masterpiece</span>
+        </div>
+        <p class="loader-description">
+            Neural networks are processing your images.<br>
+            Please wait while your artwork is generated.
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        "use strict";
+
+        // IMAGE PREVIEW AND VALIDATION
+        function previewFile(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input && input.files ? input.files[0] : null;
+
+            if (!preview || !file) return;
+
+            const allowedTypes = ["image/jpeg", "image/png"];
+            const maxSize = 16 * 1024 * 1024;
+
+            if (!allowedTypes.includes(file.type)) {
+                input.value = "";
+                alert("Please select a JPG, JPEG, or PNG image.");
+                return;
+            }
+
+            if (file.size > maxSize) {
+                input.value = "";
+                alert("Image size must be 16 MB or less.");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const image = new Image();
+                image.alt = previewId === "contentPreview"
+                    ? "Content image preview"
+                    : "Style image preview";
+
+                image.onload = function () {
+                    preview.replaceChildren(image);
+                };
+
+                image.onerror = function () {
+                    input.value = "";
+                    alert("The selected file could not be displayed.");
+                };
+
+                image.src = event.target.result;
+            };
+
+            reader.onerror = function () {
+                alert("Unable to read this image. Please try another file.");
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // FILE INPUT EVENTS
+        const contentInput = document.getElementById("contentFile");
+        const styleInput = document.getElementById("styleFile");
+
+        if (contentInput) {
+            contentInput.addEventListener("change", function () {
+                previewFile(this, "contentPreview");
+            });
+        }
+
+        if (styleInput) {
+            styleInput.addEventListener("change", function () {
+                previewFile(this, "stylePreview");
+            });
+        }
+
+        // ALPHA SLIDER
+        const alphaRange = document.getElementById("alphaRange");
+        const rangeValue = document.getElementById("rangeValue");
+
+        function updateAlphaValue() {
+            if (alphaRange && rangeValue) {
+                rangeValue.textContent = Number(alphaRange.value).toFixed(1);
+            }
+        }
+
+        if (alphaRange) {
+            alphaRange.addEventListener("input", updateAlphaValue);
+            updateAlphaValue();
+        }
+
+        // FORM SUBMISSION AND LOADER
+        const uploadForm = document.getElementById("uploadForm");
+        const loader = document.getElementById("loader");
+        const submitButton = document.getElementById("submitButton");
+        const submitButtonText = document.getElementById("submitButtonText");
+
+        if (uploadForm) {
+            uploadForm.addEventListener("submit", function (event) {
+                if (!uploadForm.checkValidity()) {
+                    event.preventDefault();
+                    uploadForm.reportValidity();
+                    return;
+                }
+
+                if (
+                    !contentInput || !contentInput.files || !contentInput.files.length ||
+                    !styleInput || !styleInput.files || !styleInput.files.length
+                ) {
+                    event.preventDefault();
+                    alert("Please select both a content image and a style image.");
+                    return;
+                }
+
+                if (loader) loader.classList.add("active");
+
+                if (submitButton) submitButton.disabled = true;
+
+                if (submitButtonText) {
+                    submitButtonText.textContent = "Generating Artwork...";
+                }
+            });
+        }
+
+        // SCROLL TO RESULT AFTER GENERATION
+        window.addEventListener("load", function () {
+            const resultSection = document.getElementById("resultSection");
+
+            if (resultSection) {
+                resultSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        });
+
+        // NEURAL PARTICLE CANVAS
+        (function initNeuralCanvas() {
+            const canvas = document.getElementById("neuralCanvas");
+            if (!canvas) return;
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            let width = 0;
+            let height = 0;
+            let particles = [];
+            let animationFrame = null;
+
+            const mouse = { x: null, y: null, radius: 130 };
+            const reduceMotion = window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+            ).matches;
+
+            function resizeCanvas() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+                width = window.innerWidth;
+                height = window.innerHeight;
+
+                canvas.width = Math.floor(width * dpr);
+                canvas.height = Math.floor(height * dpr);
+                canvas.style.width = width + "px";
+                canvas.style.height = height + "px";
+
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                const count = Math.min(65, Math.max(20, Math.floor(width / 22)));
+                particles = [];
+
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.45,
+                        vy: (Math.random() - 0.5) * 0.45,
+                        radius: Math.random() * 1.7 + 0.6
+                    });
+                }
+            }
+
+            function drawFrame() {
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    const particle = particles[i];
+
+                    if (!reduceMotion) {
+                        particle.x += particle.vx;
+                        particle.y += particle.vy;
+
+                        if (particle.x < 0 || particle.x > width) particle.vx *= -1;
+                        if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+                    }
+
+                    particle.x = Math.max(0, Math.min(width, particle.x));
+                    particle.y = Math.max(0, Math.min(height, particle.y));
+
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(187, 142, 255, 0.65)";
+                    ctx.fill();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const other = particles[j];
+                        const dx = particle.x - other.x;
+                        const dy = particle.y - other.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 115) {
+                            const opacity = 0.15 * (1 - distance / 115);
+
+                            ctx.beginPath();
+                            ctx.moveTo(particle.x, particle.y);
+                            ctx.lineTo(other.x, other.y);
+                            ctx.strokeStyle = "rgba(158, 116, 255, " + opacity + ")";
+                            ctx.lineWidth = 0.7;
+                            ctx.stroke();
+                        }
+                    }
+
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = particle.x - mouse.x;
+                        const dy = particle.y - mouse.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance > 0 && distance < mouse.radius) {
+                            ctx.beginPath();
+                            ctx.moveTo(particle.x, particle.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.strokeStyle = "rgba(255, 104, 199, " +
+                                (0.28 * (1 - distance / mouse.radius)) + ")";
+                            ctx.lineWidth = 0.8;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                if (!reduceMotion) {
+                    animationFrame = requestAnimationFrame(drawFrame);
+                }
+            }
+
+            window.addEventListener("resize", resizeCanvas);
+
+            window.addEventListener("pointermove", function (event) {
+                mouse.x = event.clientX;
+                mouse.y = event.clientY;
+            }, { passive: true });
+
+            document.addEventListener("pointerleave", function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            document.addEventListener("visibilitychange", function () {
+                if (document.hidden && animationFrame !== null) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                } else if (
+                    !document.hidden &&
+                    !reduceMotion &&
+                    animationFrame === null
+                ) {
+                    animationFrame = requestAnimationFrame(drawFrame);
+                }
+            });
+
+            resizeCanvas();
+
+            if (reduceMotion) {
+                drawFrame();
+            } else {
+                animationFrame = requestAnimationFrame(drawFrame);
+            }
+        })();
+
+        // FOOTER YEAR
+        const currentYear = document.getElementById("currentYear");
+
+        if (currentYear) {
+            currentYear.textContent = new Date().getFullYear();
+
+        }
+    </script>
+
+<footer style="text-align: center; padding: 20px; color: #aaa;">
+    Created with ❤️ by <strong>Shravan Kumar</strong> | 🤖 AI/ML Engineer
+</footer>
+
+</body>
+</html>
